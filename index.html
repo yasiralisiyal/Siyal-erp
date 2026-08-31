@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siyal ERP - User Passwords & Complete System</title>
+    <title>Siyal ERP - User & Custom Password Setup</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -34,6 +34,845 @@
                 <h2 class="text-base font-extrabold text-white pt-2">Siyal ERP Login</h2>
                 <p class="text-[10px] text-slate-400">Select user and enter account password</p>
             </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-3 pt-2">
+                <div>
+                    <label class="block text-[10px] text-slate-400 mb-1">Select User</label>
+                    <select id="loginUserSelect" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none">
+                        <!-- Dynamic User Options -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-slate-400 mb-1">Password / PIN</label>
+                    <input type="password" id="loginPin" placeholder="Enter Password" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none" required>
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition">
+                    Login to System
+                </button>
+            </form>
+            <div id="defaultUserList" class="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-[10px] text-slate-400 space-y-1">
+                <p class="font-bold text-slate-300">Active Users & Passwords:</p>
+                <div id="loginUserHintList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP SCREEN -->
+    <div id="mainApp" class="hidden">
+        <!-- TOP MAIN HEADER -->
+        <header class="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-40 shadow-lg no-print">
+            <div class="flex justify-between items-center mb-3">
+                <div class="flex items-center gap-3">
+                    <div id="userAvatar" class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm text-white shadow-md">
+                        Y
+                    </div>
+                    <div>
+                        <h1 id="userDisplay" class="font-bold text-xs text-slate-100">Yasir Siyal</h1>
+                        <p class="text-[9px] text-emerald-400 flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active Session
+                        </p>
+                    </div>
+                </div>
+                <button onclick="handleLogout()" class="px-2.5 py-1 bg-slate-800 hover:bg-rose-900/50 text-rose-400 border border-slate-700 rounded-lg text-[10px] font-semibold transition flex items-center gap-1">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </div>
+
+            <!-- TOP NAVIGATION TABS -->
+            <nav id="topNav" class="flex items-center justify-around bg-slate-950/80 p-1.5 rounded-xl border border-slate-800/80">
+                <button id="navHome" onclick="switchTab('Home')" class="flex-1 py-1.5 text-center text-xs font-bold text-blue-400 rounded-lg bg-slate-800/60 transition">
+                    <i class="fa-solid fa-house mr-1"></i> Home
+                </button>
+                <button id="navSetup" onclick="switchTab('Setup')" class="flex-1 py-1.5 text-center text-xs font-bold text-slate-400 rounded-lg transition">
+                    <i class="fa-solid fa-sliders mr-1"></i> Setup
+                </button>
+                <button id="navIncome" onclick="switchTab('Income')" class="flex-1 py-1.5 text-center text-xs font-bold text-slate-400 rounded-lg transition">
+                    <i class="fa-solid fa-circle-arrow-down text-emerald-400 mr-1"></i> Income
+                </button>
+                <button id="navExpense" onclick="switchTab('Expense')" class="flex-1 py-1.5 text-center text-xs font-bold text-slate-400 rounded-lg transition">
+                    <i class="fa-solid fa-circle-arrow-up text-rose-400 mr-1"></i> Expense
+                </button>
+                <button id="navReports" onclick="switchTab('Reports')" class="flex-1 py-1.5 text-center text-xs font-bold text-slate-400 rounded-lg transition">
+                    <i class="fa-solid fa-chart-pie mr-1"></i> Reports
+                </button>
+            </nav>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="max-w-md mx-auto p-4">
+            
+            <!-- DASHBOARD TAB (HOME) -->
+            <section id="tabHome" class="tab-content space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Income</span>
+                        <h3 id="dashIncome" class="text-lg font-extrabold text-emerald-400 mt-1">PKR 0</h3>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Expense</span>
+                        <h3 id="dashExpense" class="text-lg font-extrabold text-rose-400 mt-1">PKR 0</h3>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-blue-900/40 to-slate-900 border border-blue-800/40 p-5 rounded-3xl shadow-xl relative overflow-hidden">
+                    <span class="text-xs text-blue-300 font-medium">Net Available Balance</span>
+                    <h2 id="dashBalance" class="text-2xl font-black text-white mt-1">PKR 0</h2>
+                    
+                    <div class="mt-4 pt-3 border-t border-slate-800/80 flex justify-between text-xs text-slate-400">
+                        <span>Savings Rate: <strong id="dashSavingsRate" class="text-emerald-400">0%</strong></span>
+                        <span>Total Entries: <strong id="dashTotalEntries" class="text-white">0</strong></span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Recent System Entries</h3>
+                    <ul id="recentList" class="space-y-2"></ul>
+                </div>
+            </section>
+
+            <!-- SETUP TAB -->
+            <section id="tabSetup" class="tab-content hidden space-y-4">
+                <div id="setupMenuView" class="space-y-3">
+                    <div class="px-1 flex justify-between items-center">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">System Master Setups</h3>
+                    </div>
+
+                    <div class="space-y-2.5">
+                        <div onclick="openSetupInterface('users', 'Users & Password Management')" class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-blue-600/50 transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 border border-purple-500/30 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-user-lock"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">1. Users & Password Setup</h4>
+                                    <p class="text-[10px] text-slate-400">Create users & assign custom passwords</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-600 text-xs"></i>
+                        </div>
+
+                        <div onclick="openSetupInterface('incomeCategories', 'Income Sources Setup')" class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-emerald-600/50 transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-wallet"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">2. Income Sources Setup</h4>
+                                    <p class="text-[10px] text-slate-400">Salary, Freelance, Business, etc.</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-600 text-xs"></i>
+                        </div>
+
+                        <div onclick="openSetupInterface('expenseCategories', 'Expense Categories Setup')" class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-rose-600/50 transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-rose-600/20 text-rose-400 border border-rose-500/30 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-receipt"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">3. Expense Categories Setup</h4>
+                                    <p class="text-[10px] text-slate-400">Fuel, Food, Bills, etc.</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-600 text-xs"></i>
+                        </div>
+
+                        <div onclick="openSetupInterface('paymentMethods', 'Payment Methods Setup')" class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-blue-600/50 transition">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-credit-card"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">4. Payment Methods Setup</h4>
+                                    <p class="text-[10px] text-slate-400">Cash, Bank, EasyPaisa, etc.</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-600 text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="setupDetailView" class="space-y-4 hidden">
+                    <div class="flex items-center justify-between bg-slate-900 border border-slate-800 p-3 rounded-2xl">
+                        <button onclick="closeSetupInterface()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-left"></i> Back
+                        </button>
+                        <h3 id="selectedSetupTitle" class="text-xs font-bold text-white uppercase tracking-wider">Setup Detail</h3>
+                    </div>
+
+                    <div id="setupInputArea" class="space-y-3 bg-slate-900 p-4 border border-slate-800 rounded-2xl">
+                        <input type="hidden" id="editingSetupIndex" value="-1">
+                        
+                        <div>
+                            <label id="inputLabel1" class="block text-[10px] text-slate-400 mb-1 font-bold">Name</label>
+                            <input type="text" id="setupInput" placeholder="Enter Name..." class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none">
+                        </div>
+                        
+                        <!-- Dedicated Password Input Container -->
+                        <div id="userPasswordContainer" class="hidden">
+                            <label class="block text-[10px] text-slate-400 mb-1 font-bold">Custom Password / PIN</label>
+                            <input type="text" id="setupPasswordInput" placeholder="Set Password for User" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-emerald-400 font-mono focus:outline-none">
+                        </div>
+
+                        <button id="setupSaveBtn" onclick="saveSetupItem()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Add New Item
+                        </button>
+                    </div>
+
+                    <ul id="setupList" class="space-y-2"></ul>
+                </div>
+            </section>
+
+            <!-- INCOME TAB -->
+            <section id="tabIncome" class="tab-content hidden space-y-4">
+                <div id="incListView" class="space-y-3">
+                    <div class="flex justify-between items-center bg-slate-900 p-3 border border-slate-800 rounded-2xl">
+                        <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Income Entries</h3>
+                        <button onclick="showIncomeForm()" class="px-3 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> + Add Income
+                        </button>
+                    </div>
+                    <ul id="incomeList" class="space-y-2"></ul>
+                </div>
+
+                <div id="incFormView" class="hidden space-y-3">
+                    <button onclick="hideIncomeForm()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Income List
+                    </button>
+                    <form onsubmit="handleTransactionSubmit(event, 'Income')" class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
+                        <h3 id="incFormTitle" class="text-xs font-bold text-emerald-400 uppercase tracking-wider">New Income Entry</h3>
+                        <input type="hidden" id="incEditIndex" value="-1">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Income Source</label>
+                            <select id="incCategory" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" required></select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Payment Method</label>
+                            <select id="incMethod" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" required></select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">Date</label>
+                                <input type="date" id="incDate" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" required>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">Amount (PKR)</label>
+                                <input type="number" id="incAmount" placeholder="0" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Note / Description</label>
+                            <input type="text" id="incNote" placeholder="e.g. Salary, Bonus" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                        </div>
+                        <button type="submit" id="incSubmitBtn" class="w-full py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl">
+                            Save Income Entry
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- EXPENSE TAB -->
+            <section id="tabExpense" class="tab-content hidden space-y-4">
+                <div id="expListView" class="space-y-3">
+                    <div class="flex justify-between items-center bg-slate-900 p-3 border border-slate-800 rounded-2xl">
+                        <h3 class="text-xs font-bold text-rose-400 uppercase tracking-wider">Expense Entries</h3>
+                        <button onclick="showExpenseForm()" class="px-3 py-1.5 bg-rose-600 text-white rounded-xl text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> + Add Expense
+                        </button>
+                    </div>
+                    <ul id="expenseList" class="space-y-2"></ul>
+                </div>
+
+                <div id="expFormView" class="hidden space-y-3">
+                    <button onclick="hideExpenseForm()" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Expense List
+                    </button>
+                    <form onsubmit="handleTransactionSubmit(event, 'Expense')" class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
+                        <h3 id="expFormTitle" class="text-xs font-bold text-rose-400 uppercase tracking-wider">New Expense Entry</h3>
+                        <input type="hidden" id="expEditIndex" value="-1">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Expense Category</label>
+                            <select id="expCategory" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" required></select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Payment Method</label>
+                            <select id="expMethod" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" required></select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">Date</label>
+                                <input type="date" id="expDate" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" required>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">Amount (PKR)</label>
+                                <input type="number" id="expAmount" placeholder="0" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Note / Description</label>
+                            <input type="text" id="expNote" placeholder="e.g. Fuel, Dinner" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                        </div>
+                        <button type="submit" id="expSubmitBtn" class="w-full py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl">
+                            Save Expense Entry
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- REPORTS TAB -->
+            <section id="tabReports" class="tab-content hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
+                    <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider">Custom Reports Generator</h3>
+                    
+                    <div class="space-y-2">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Report Type</label>
+                            <select id="reportType" onchange="generateReport()" class="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                                <option value="All">All Transactions Report</option>
+                                <option value="Income">Income Only Report</option>
+                                <option value="Expense">Expense Only Report</option>
+                                <option value="Users">Users Master List Report</option>
+                            </select>
+                        </div>
+
+                        <div id="dateFilters" class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">From Date</label>
+                                <input type="date" id="reportFrom" onchange="generateReport()" class="w-full p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">To Date</label>
+                                <input type="date" id="reportTo" onchange="generateReport()" class="w-full p-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="window.print()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-print"></i> Print / Save PDF
+                        </button>
+                        <button onclick="downloadCSV()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-file-excel"></i> Download CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PRINTABLE REPORT AREA -->
+                <div id="printableReport" class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
+                    <div class="border-b border-slate-800 pb-2 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-sm font-bold text-white">Personal ERP Report</h2>
+                            <p id="reportSubTitle" class="text-[10px] text-slate-400">All Transactions Summary</p>
+                        </div>
+                        <span id="reportTotalSummary" class="text-xs font-extrabold text-blue-400">Total: PKR 0</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead id="reportTableHeader" class="text-[10px] text-slate-400 border-b border-slate-800 uppercase">
+                                <!-- Dynamic Table Header -->
+                            </thead>
+                            <tbody id="reportTableBody" class="divide-y divide-slate-800 text-slate-200">
+                                <!-- Dynamic Table Content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let appData = {
+            users: [
+                { name: "Yasir Siyal", pin: "1234" },
+                { name: "Guest User", pin: "0000" }
+            ],
+            incomeCategories: ["Salary", "Freelance", "Business", "Rides"],
+            expenseCategories: ["Fuel", "Food", "Bills", "Shopping", "Repairs"],
+            paymentMethods: ["Cash", "Bank Transfer", "EasyPaisa", "JazzCash"],
+            transactions: [
+                { id: 1, type: "Income", category: "Salary", method: "Bank Transfer", date: "2026-02-01", amount: 150000, note: "Monthly Salary" },
+                { id: 2, type: "Expense", category: "Fuel", method: "Cash", date: "2026-02-02", amount: 5000, note: "Car Fuel" }
+            ]
+        };
+
+        let activeSetupKey = "";
+
+        function initApp() {
+            let saved = localStorage.getItem("erp_master_data_v3");
+            if(saved) appData = JSON.parse(saved); else saveToStorage();
+
+            populateLoginUsers();
+
+            let isLoggedIn = localStorage.getItem("erp_logged_in");
+            let currentUser = localStorage.getItem("erp_current_user");
+
+            if(isLoggedIn === "true" && currentUser) {
+                showApp(currentUser);
+            } else {
+                showLogin();
+            }
+        }
+
+        function saveToStorage() {
+            localStorage.setItem("erp_master_data_v3", JSON.stringify(appData));
+        }
+
+        function populateLoginUsers() {
+            let sel = document.getElementById("loginUserSelect");
+            let hintList = document.getElementById("loginUserHintList");
+            
+            sel.innerHTML = appData.users.map(u => `<option value="${u.name}">${u.name}</option>`).join('');
+            hintList.innerHTML = appData.users.map(u => `<p>• ${u.name} (Pass: <span class="text-emerald-400 font-mono font-bold">${u.pin}</span>)</p>`).join('');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            let enteredPin = document.getElementById("loginPin").value;
+            let selectedUser = document.getElementById("loginUserSelect").value;
+
+            let userObj = appData.users.find(u => u.name === selectedUser);
+
+            if(userObj && userObj.pin === enteredPin) {
+                localStorage.setItem("erp_logged_in", "true");
+                localStorage.setItem("erp_current_user", selectedUser);
+                showApp(selectedUser);
+            } else {
+                alert("Incorrect Password for " + selectedUser + "!");
+            }
+        }
+
+        function handleLogout() {
+            if(confirm("Are you sure you want to logout?")) {
+                localStorage.removeItem("erp_logged_in");
+                localStorage.removeItem("erp_current_user");
+                location.reload();
+            }
+        }
+
+        function showLogin() {
+            document.getElementById("loginScreen").classList.remove("hidden");
+            document.getElementById("mainApp").classList.add("hidden");
+        }
+
+        function showApp(userName) {
+            document.getElementById("loginScreen").classList.add("hidden");
+            document.getElementById("mainApp").classList.remove("hidden");
+
+            document.getElementById("userDisplay").innerText = userName;
+            document.getElementById("userAvatar").innerText = userName.charAt(0).toUpperCase();
+
+            renderDashboard();
+            populateDropdowns();
+            generateReport();
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab' + tabName).classList.remove('hidden');
+
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.className = "flex-1 py-1.5 text-center text-xs font-bold text-slate-400 rounded-lg transition";
+            });
+            document.getElementById('nav' + tabName).className = "flex-1 py-1.5 text-center text-xs font-bold text-blue-400 rounded-lg bg-slate-800/60 transition";
+
+            if(tabName === 'Home') renderDashboard();
+            if(tabName === 'Income') renderTransactions('Income');
+            if(tabName === 'Expense') renderTransactions('Expense');
+            if(tabName === 'Reports') generateReport();
+        }
+
+        function renderDashboard() {
+            let totalInc = appData.transactions.filter(t => t.type === 'Income').reduce((acc, t) => acc + Number(t.amount), 0);
+            let totalExp = appData.transactions.filter(t => t.type === 'Expense').reduce((acc, t) => acc + Number(t.amount), 0);
+            let balance = totalInc - totalExp;
+
+            document.getElementById("dashIncome").innerText = "PKR " + totalInc.toLocaleString();
+            document.getElementById("dashExpense").innerText = "PKR " + totalExp.toLocaleString();
+            document.getElementById("dashBalance").innerText = "PKR " + balance.toLocaleString();
+            document.getElementById("dashTotalEntries").innerText = appData.transactions.length;
+
+            let rate = totalInc > 0 ? Math.round(((totalInc - totalExp) / totalInc) * 100) : 0;
+            document.getElementById("dashSavingsRate").innerText = rate + "%";
+
+            let recentList = document.getElementById("recentList");
+            recentList.innerHTML = "";
+            appData.transactions.slice().reverse().slice(0, 5).forEach(t => {
+                let isInc = t.type === 'Income';
+                recentList.innerHTML += `
+                    <li class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-bold text-white">${t.category}</span>
+                            <p class="text-[10px] text-slate-400">${t.date} • ${t.method}</p>
+                        </div>
+                        <span class="text-xs font-extrabold ${isInc ? 'text-emerald-400' : 'text-rose-400'}">
+                            ${isInc ? '+' : '-'} PKR ${Number(t.amount).toLocaleString()}
+                        </span>
+                    </li>
+                `;
+            });
+        }
+
+        function populateDropdowns() {
+            let incCat = document.getElementById("incCategory");
+            let expCat = document.getElementById("expCategory");
+            let incMethod = document.getElementById("incMethod");
+            let expMethod = document.getElementById("expMethod");
+
+            incCat.innerHTML = appData.incomeCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+            expCat.innerHTML = appData.expenseCategories.map(c => `<option value="${c}">${c}</option>`).join('');
+            
+            let methodOptions = appData.paymentMethods.map(m => `<option value="${m}">${m}</option>`).join('');
+            incMethod.innerHTML = methodOptions;
+            expMethod.innerHTML = methodOptions;
+        }
+
+        // SETUP MANAGEMENT FUNCTIONS
+        function openSetupInterface(key, title) {
+            activeSetupKey = key;
+            document.getElementById("setupMenuView").classList.add("hidden");
+            document.getElementById("setupDetailView").classList.remove("hidden");
+            document.getElementById("selectedSetupTitle").innerText = title;
+
+            let passContainer = document.getElementById("userPasswordContainer");
+            let inputLabel = document.getElementById("inputLabel1");
+
+            if(key === 'users') {
+                passContainer.classList.remove("hidden");
+                inputLabel.innerText = "User Name";
+                document.getElementById("setupInput").placeholder = "Enter User Name...";
+            } else {
+                passContainer.classList.add("hidden");
+                inputLabel.innerText = "Item Name";
+                document.getElementById("setupInput").placeholder = "Enter Item Name...";
+            }
+
+            resetSetupForm();
+            renderSetupList();
+        }
+
+        function closeSetupInterface() {
+            document.getElementById("setupMenuView").classList.remove("hidden");
+            document.getElementById("setupDetailView").classList.add("hidden");
+            populateDropdowns();
+            populateLoginUsers();
+        }
+
+        function renderSetupList() {
+            let list = document.getElementById("setupList");
+            list.innerHTML = "";
+            appData[activeSetupKey].forEach((item, index) => {
+                let isUser = activeSetupKey === 'users';
+                let name = isUser ? item.name : item;
+                let subtext = isUser ? `Password / PIN: <span class="font-mono text-emerald-400 font-bold">${item.pin}</span>` : '';
+
+                list.innerHTML += `
+                    <li class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-white font-semibold block">${name}</span>
+                            <span class="text-[10px] text-slate-400">${subtext}</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editSetupItem(${index})" class="px-2 py-1 bg-amber-500/20 text-amber-400 rounded-lg text-[10px] font-bold">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </button>
+                            <button onclick="deleteSetupItem(${index})" class="px-2 py-1 bg-rose-500/20 text-rose-400 rounded-lg text-[10px] font-bold">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </li>
+                `;
+            });
+        }
+
+        function editSetupItem(index) {
+            document.getElementById("editingSetupIndex").value = index;
+            let isUser = activeSetupKey === 'users';
+            let item = appData[activeSetupKey][index];
+
+            if(isUser) {
+                document.getElementById("setupInput").value = item.name;
+                document.getElementById("setupPasswordInput").value = item.pin;
+            } else {
+                document.getElementById("setupInput").value = item;
+            }
+
+            document.getElementById("setupSaveBtn").innerHTML = `<i class="fa-solid fa-check"></i> Update Record`;
+            document.getElementById("setupSaveBtn").className = "w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-black rounded-xl text-xs font-bold flex items-center justify-center gap-1";
+        }
+
+        function saveSetupItem() {
+            let nameInput = document.getElementById("setupInput").value.trim();
+            let passInput = document.getElementById("setupPasswordInput").value.trim();
+            let editIndex = parseInt(document.getElementById("editingSetupIndex").value);
+            let isUser = activeSetupKey === 'users';
+
+            if(!nameInput) return alert("Please enter Name!");
+            if(isUser && !passInput) return alert("Please set a password for this user!");
+
+            let newItem = isUser ? { name: nameInput, pin: passInput } : nameInput;
+
+            if(editIndex === -1) {
+                appData[activeSetupKey].push(newItem);
+            } else {
+                appData[activeSetupKey][editIndex] = newItem;
+            }
+
+            saveToStorage();
+            resetSetupForm();
+            renderSetupList();
+            populateDropdowns();
+            populateLoginUsers();
+        }
+
+        function deleteSetupItem(index) {
+            if(appData[activeSetupKey].length <= 1) {
+                return alert("At least one item must remain in system!");
+            }
+            if(confirm("Are you sure you want to delete this record?")) {
+                appData[activeSetupKey].splice(index, 1);
+                saveToStorage();
+                renderSetupList();
+                populateDropdowns();
+                populateLoginUsers();
+            }
+        }
+
+        function resetSetupForm() {
+            document.getElementById("editingSetupIndex").value = "-1";
+            document.getElementById("setupInput").value = "";
+            document.getElementById("setupPasswordInput").value = "";
+            document.getElementById("setupSaveBtn").innerHTML = `<i class="fa-solid fa-plus"></i> Add New Item`;
+            document.getElementById("setupSaveBtn").className = "w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1";
+        }
+
+        // TRANSACTION FUNCTIONS (INCOME & EXPENSE)
+        function renderTransactions(type) {
+            let listId = type === 'Income' ? 'incomeList' : 'expenseList';
+            let list = document.getElementById(listId);
+            list.innerHTML = "";
+
+            let filtered = appData.transactions.filter(t => t.type === type);
+            filtered.forEach(t => {
+                let actualIndex = appData.transactions.findIndex(item => item.id === t.id);
+                list.innerHTML += `
+                    <li class="bg-slate-900 border border-slate-800 p-3 rounded-2xl flex justify-between items-center">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-white">${t.category}</span>
+                                <span class="text-[9px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md">${t.method}</span>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${t.date} ${t.note ? '• ' + t.note : ''}</p>
+                        </div>
+                        <div class="text-right flex items-center gap-3">
+                            <span class="text-xs font-extrabold ${type === 'Income' ? 'text-emerald-400' : 'text-rose-400'}">
+                                PKR ${Number(t.amount).toLocaleString()}
+                            </span>
+                            <div class="flex gap-1">
+                                <button onclick="editTransaction(${actualIndex}, '${type}')" class="p-1.5 bg-amber-500/20 text-amber-400 rounded-lg text-xs">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button onclick="deleteTransaction(${actualIndex})" class="p-1.5 bg-rose-500/20 text-rose-400 rounded-lg text-xs">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            });
+        }
+
+        function showIncomeForm() {
+            document.getElementById("incListView").classList.add("hidden");
+            document.getElementById("incFormView").classList.remove("hidden");
+            resetTransactionForm('Income');
+        }
+
+        function hideIncomeForm() {
+            document.getElementById("incListView").classList.remove("hidden");
+            document.getElementById("incFormView").classList.add("hidden");
+        }
+
+        function showExpenseForm() {
+            document.getElementById("expListView").classList.add("hidden");
+            document.getElementById("expFormView").classList.remove("hidden");
+            resetTransactionForm('Expense');
+        }
+
+        function hideExpenseForm() {
+            document.getElementById("expListView").classList.remove("hidden");
+            document.getElementById("expFormView").classList.add("hidden");
+        }
+
+        function handleTransactionSubmit(e, type) {
+            e.preventDefault();
+            let prefix = type === 'Income' ? 'inc' : 'exp';
+            let editIndex = parseInt(document.getElementById(prefix + "EditIndex").value);
+
+            let entry = {
+                id: editIndex === -1 ? Date.now() : appData.transactions[editIndex].id,
+                type: type,
+                category: document.getElementById(prefix + "Category").value,
+                method: document.getElementById(prefix + "Method").value,
+                date: document.getElementById(prefix + "Date").value,
+                amount: parseFloat(document.getElementById(prefix + "Amount").value),
+                note: document.getElementById(prefix + "Note").value
+            };
+
+            if(editIndex === -1) {
+                appData.transactions.push(entry);
+            } else {
+                appData.transactions[editIndex] = entry;
+            }
+
+            saveToStorage();
+            if(type === 'Income') hideIncomeForm(); else hideExpenseForm();
+            renderTransactions(type);
+            renderDashboard();
+        }
+
+        function editTransaction(index, type) {
+            let tx = appData.transactions[index];
+            let prefix = type === 'Income' ? 'inc' : 'exp';
+
+            if(type === 'Income') showIncomeForm(); else showExpenseForm();
+
+            document.getElementById(prefix + "EditIndex").value = index;
+            document.getElementById(prefix + "Category").value = tx.category;
+            document.getElementById(prefix + "Method").value = tx.method;
+            document.getElementById(prefix + "Date").value = tx.date;
+            document.getElementById(prefix + "Amount").value = tx.amount;
+            document.getElementById(prefix + "Note").value = tx.note || "";
+
+            document.getElementById(prefix + "FormTitle").innerText = "Edit " + type + " Entry";
+            document.getElementById(prefix + "SubmitBtn").innerText = "Update " + type + " Entry";
+            document.getElementById(prefix + "SubmitBtn").className = "w-full py-2.5 bg-amber-500 text-black font-bold text-xs rounded-xl";
+        }
+
+        function deleteTransaction(index) {
+            if(confirm("Are you sure you want to delete this entry?")) {
+                let type = appData.transactions[index].type;
+                appData.transactions.splice(index, 1);
+                saveToStorage();
+                renderTransactions(type);
+                renderDashboard();
+            }
+        }
+
+        function resetTransactionForm(type) {
+            let prefix = type === 'Income' ? 'inc' : 'exp';
+            document.getElementById(prefix + "EditIndex").value = "-1";
+            document.getElementById(prefix + "Amount").value = "";
+            document.getElementById(prefix + "Note").value = "";
+            document.getElementById(prefix + "Date").value = new Date().toISOString().split('T')[0];
+
+            document.getElementById(prefix + "FormTitle").innerText = "New " + type + " Entry";
+            document.getElementById(prefix + "SubmitBtn").innerText = "Save " + type + " Entry";
+            document.getElementById(prefix + "SubmitBtn").className = type === 'Income' ? "w-full py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl" : "w-full py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl";
+        }
+
+        // REPORT LOGIC
+        function generateReport() {
+            let type = document.getElementById("reportType").value;
+            let from = document.getElementById("reportFrom").value;
+            let to = document.getElementById("reportTo").value;
+            let dateFilters = document.getElementById("dateFilters");
+
+            let header = document.getElementById("reportTableHeader");
+            let body = document.getElementById("reportTableBody");
+            let title = document.getElementById("reportSubTitle");
+            let summary = document.getElementById("reportTotalSummary");
+
+            body.innerHTML = "";
+
+            if (type === 'Users') {
+                dateFilters.classList.add("hidden");
+                title.innerText = "System Registered Users List";
+                summary.innerText = "Total Users: " + appData.users.length;
+                header.innerHTML = `<tr><th class="p-2">#</th><th class="p-2">User Name</th><th class="p-2">Password</th></tr>`;
+
+                appData.users.forEach((u, i) => {
+                    body.innerHTML += `
+                        <tr>
+                            <td class="p-2">${i+1}</td>
+                            <td class="p-2 font-bold">${u.name}</td>
+                            <td class="p-2 font-mono text-emerald-400">${u.pin}</td>
+                        </tr>
+                    `;
+                });
+                return;
+            }
+
+            dateFilters.classList.remove("hidden");
+            title.innerText = type + " Statement Report";
+            header.innerHTML = `<tr><th class="p-2">Date</th><th class="p-2">Category</th><th class="p-2">Method</th><th class="p-2 text-right">Amount</th></tr>`;
+
+            let filtered = appData.transactions.filter(t => {
+                let matchesType = (type === 'All') ? true : t.type === type;
+                let matchesFrom = from ? t.date >= from : true;
+                let matchesTo = to ? t.date <= to : true;
+                return matchesType && matchesFrom && matchesTo;
+            });
+
+            let totalSum = 0;
+            filtered.forEach(t => {
+                let isInc = t.type === 'Income';
+                totalSum += isInc ? Number(t.amount) : -Number(t.amount);
+
+                body.innerHTML += `
+                    <tr>
+                        <td class="p-2">${t.date}</td>
+                        <td class="p-2 font-semibold">${t.category} <span class="text-[9px] text-slate-500 block">${t.note || ''}</span></td>
+                        <td class="p-2 text-slate-400">${t.method}</td>
+                        <td class="p-2 text-right font-extrabold ${isInc ? 'text-emerald-400' : 'text-rose-400'}">
+                            ${isInc ? '+' : '-'} PKR ${Number(t.amount).toLocaleString()}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            summary.innerText = "Net Balance: PKR " + totalSum.toLocaleString();
+        }
+
+        function downloadCSV() {
+            let type = document.getElementById("reportType").value;
+            let rows = [];
+
+            if (type === 'Users') {
+                rows.push(["ID", "User Name", "Password"]);
+                appData.users.forEach((u, i) => rows.push([i+1, u.name, u.pin]));
+            } else {
+                rows.push(["Date", "Type", "Category", "Method", "Amount", "Note"]);
+                let from = document.getElementById("reportFrom").value;
+                let to = document.getElementById("reportTo").value;
+                
+                let filtered = appData.transactions.filter(t => {
+                    let matchesType = (type === 'All') ? true : t.type === type;
+                    let matchesFrom = from ? t.date >= from : true;
+                    let matchesTo = to ? t.date <= to : true;
+                    return matchesType && matchesFrom && matchesTo;
+                });
+
+                filtered.forEach(t => rows.push([t.date, t.type, t.category, t.method, t.amount, t.note || ""]));
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `${type}_Report_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // App Initialization
+        initApp();
+    </script>
+</body>
+</html>
 
             <form onsubmit="handleLogin(event)" class="space-y-3 pt-2">
                 <div>
